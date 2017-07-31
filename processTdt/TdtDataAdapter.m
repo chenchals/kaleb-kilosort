@@ -23,12 +23,13 @@ classdef TdtDataAdapter < DataAdapter
         end
         
         % Batch read datapoints
-        function [ buffer ] = batchRead(obj, readOffsetAllChan, nChannels, nSamples, dataTypeString)
+        function [ buffer ] = batchRead(obj, readOffsetAllChan, nChannels, nSamples, dataTypeString, chOffset)
             checkChannelCount(obj, nChannels);
             buffer = zeros(nChannels, nSamples);
             headerBytes = 40;
             readOffset = (readOffsetAllChan/nChannels) + headerBytes;
-            for ch = 1:nChannels
+            myChannels = (1:nChannels)+chOffset;
+            for ch = myChannels
                 fid = obj.fidArray(ch);
                 fseek(fid,readOffset,'bof');
                 %fprintf('pointer before read %d ...',ftell(fid));
@@ -37,19 +38,19 @@ classdef TdtDataAdapter < DataAdapter
                 if isempty(temp)
                     buffer = [];
                 else
-                   buffer(ch,1:length(temp)) = temp;
+                   buffer(ch-chOffset,1:length(temp)) = temp;
                 end
                 clearvars temp
             end
             % close all filehandles if buff=[], as we have read past the
             % file for every channel
             if isempty(buffer)
-                obj.closeAll();
+                 obj.closeAll();
             end
         end
         
         % Read sample data for range of [sampleWin] centered on samples
-        function [ waveforms ] = getWaveforms(obj, sampleWin, samples, channelNos)
+        function [ waveforms ] = getWaveforms(obj, sampleWin, samples, channelNos, chOffset)
            wtemp = cell(length(channelNos),1);
            dataType = 'single';
            header = 40;
@@ -61,12 +62,13 @@ classdef TdtDataAdapter < DataAdapter
            minLoc = (min(wavIndices(:))-1)*4;
            nSampsToRead = max(wavIndices(:)) - min(wavIndices(:)) + 1;
            wavIndicesRel = wavIndices - min(wavIndices(:)) +1;
-           for ch = 1 : nChannels
+           myChannels = (1:nChannels)+chOffset;
+           for ch = myChannels
                fprintf('Doing channel %d\n',ch);
-               fid = obj.fidArray(channelNos(ch));
+               fid = obj.fidArray(ch);
                fseek(fid,minLoc+header,'bof');
                temp = fread(fid, nSampsToRead, ['*' dataType]);
-               wtemp{ch} = temp(wavIndicesRel);
+               wtemp{ch-chOffset} = temp(wavIndicesRel);
            end
            waveforms=reshape(cell2mat(wtemp'),nSamples,sampWinLength,nChannels);
            % verify diff should be zero for channel 1

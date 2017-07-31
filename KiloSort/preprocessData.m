@@ -44,6 +44,8 @@ function [rez, DATA, uproj] = preprocessData(ops)
     Nbatch_buff = inf;%floor(4/5 * nint16s/rez.ops.Nchan /(ops.NT-ops.ntbuff)); % factor of 4/5 for storing PCs of spikes
     Nbatch_buff = min(Nbatch_buff, Nbatch);
 
+    chOffset = ops.chOffset;
+    
     %% load data into patches, filter, compute covariance
     if isfield(ops,'fslow')&&ops.fslow<ops.fs/2
         [b1, a1] = butter(3, [ops.fshigh/ops.fs,ops.fslow/ops.fs]*2, 'bandpass');
@@ -91,9 +93,7 @@ function [rez, DATA, uproj] = preprocessData(ops)
         end
         myLoopCount = myLoopCount +1;
         fprintf('Reading spikes into buff while loop count = %d of Nbatch = %d  offset = %d\n',myLoopCount, Nbatch, offset);
-        buff = dataAdapter.batchRead(offset, ops.NchanTOT, NTbuff, dataTypeString);
-
-        %        keyboard;
+        buff = dataAdapter.batchRead(offset, ops.NchanTOT, NTbuff, dataTypeString, chOffset);
         if isempty(buff)
             break;
         end
@@ -101,6 +101,11 @@ function [rez, DATA, uproj] = preprocessData(ops)
         if nsampcurr<NTbuff
             buff(:, nsampcurr+1:NTbuff) = repmat(buff(:,nsampcurr), 1, NTbuff-nsampcurr);
         end
+        % Testing if DATA needs to be scaled up
+        while ~any(buff(:) > 10)
+            buff = buff.*1000;
+        end
+        
         if ops.GPU
             dataRAW = gpuArray(buff);
         else
@@ -185,7 +190,9 @@ function [rez, DATA, uproj] = preprocessData(ops)
         uproj = zeros(1e6,  size(wPCA,2) * rez.ops.Nchan, 'single');
     end
     %
+    fprintf('Applying filters...');
     for ibatch = 1:Nbatch
+        fprintf('Applying filters: ibatch = %d of Nbatch = %d \n',ibatch, Nbatch);
         if isproc(ibatch) %ibatch<=Nbatch_buff
             if ops.GPU
                 datr = single(gpuArray(DATA(:,:,ibatch)));
@@ -203,12 +210,14 @@ function [rez, DATA, uproj] = preprocessData(ops)
             else
                 ioffset = ops.ntbuff;
             end
-            fprintf('Applying filters: ibatch = %d of Nbatch = %d  offset = %d\n',ibatch, Nbatch, offset);
             buff = dataAdapter.batchRead(offset, ops.NchanTOT, NTbuff, dataTypeString);
 
             if isempty(buff)
                 break;
             end
+            
+            
+            
             nsampcurr = size(buff,2);
             if nsampcurr<NTbuff
                 buff(:, nsampcurr+1:NTbuff) = repmat(buff(:,nsampcurr), 1, NTbuff-nsampcurr);
@@ -269,7 +278,7 @@ function [rez, DATA, uproj] = preprocessData(ops)
         end
 
     end
-
+%     fprintf('\n');
     if strcmp(ops.initialize, 'fromData')
         uproj(i0+1:end, :) = [];
     end
@@ -303,10 +312,9 @@ function [rez, DATA, uproj] = preprocessData(ops)
             ops.Nchan    = getOr(ops, 'Nchan', sum(chanMapStruct.connected>1e-6));
             ops.NchanTOT = getOr(ops, 'NchanTOT', numel(chanMapStruct.connected));
             ops.kcoords = chanMapStruct.kcoords(chanMapStruct.connected>1e-6);
-            if isfield(chanMapStruct,'fs')
-            ops.fs = chanMapStruct.fs;
-            end
-         else % ops.chanMap is a numeric array (linear)
+%             ops.fs = chanMapStruct.fs;
+
+        else % ops.chanMap is a numeric array (linear)
             ops.chanMap = ops.chanMap;
             ops.chanMapConn = ops.chanMap;
             ops.xc = zeros(numel(ops.chanMapConn), 1);

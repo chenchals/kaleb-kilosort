@@ -120,9 +120,9 @@ batchstart = 0:NT:NT*(Nbatch-Nbatch_buff);
 
 for ibatch = 1:Nbatch    
     if ibatch>Nbatch_buff
-        offset = ops.dataTypeBytes * ops.Nchan*batchstart(ibatch-Nbatch_buff); % - ioffset;
+        offset = 2 * ops.Nchan*batchstart(ibatch-Nbatch_buff); % - ioffset;
         fseek(fid, offset, 'bof');
-        dat = fread(fid, [NT ops.Nchan], ['*' ops.dataTypeString]);
+        dat = fread(fid, [NT ops.Nchan], '*int16');
     else
        dat = DATA(:,:,ibatch); 
     end
