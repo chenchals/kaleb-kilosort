@@ -1,6 +1,6 @@
 %% Pull waveforms and spike times for each cluster... but also figure out the channel
 
-function out = klRezToSpks(rez)
+function out = klRezToSpks(rez,varargin)
 
 % Set defaults
 sampWin = -10:20;
@@ -8,14 +8,26 @@ nChannels = 1:rez.ops.NchanTOT;
 percThresh = .05;
 chanOff = 0;
 sampleRate = 24414;
+resultPath = './dataProcessed';
 
 % Decode varargin
+varStrInd = find(cellfun(@ischar,varargin));
+for iv = 1:length(varStrInd)
+    switch varargin{varStrInd(iv)}
+        case {'-r'}
+            resultPath = varargin{varStrInd(iv)+1};
+    end
+end
+
 
 % Get what we need from rez before clearing
-resultPath = rez.ops.resultPath;
+[~,sessStr] = fileparts(rez.ops.resultPath(1:(end-1)));
+resultPath = [resultPath,filesep,sessStr];
 isPos = rez.ops.spkTh > 0;
 allWaves = rez.waves;
 clear rez;
+
+% If 
 
 % Get clusters and times
 clusts = readNPY([resultPath, '/spike_clusters.npy']);% rez.st3(:,5);
@@ -50,8 +62,8 @@ for ic = 1:length(uClusts)
     % Loop through the channels that do have at leeast 5%...
     uMaxChan = unique(chansMeetCrit);
     for iu = 1:length(uMaxChan)
-        spkTimes = clusterWaves(maxAbs==uMaxChan(iu),:,uMaxChan(iu));
-        waves = tmVect(clusterTimes(maxAbs==uMaxChan(iu)));
+        waves = clusterWaves(maxAbs==uMaxChan(iu),:,uMaxChan(iu));
+        spkTimes = tmVect(clusterTimes(maxAbs==uMaxChan(iu)));
         % Unit id
         chanNoUnits(uMaxChan(iu)) = chanNoUnits(uMaxChan(iu)) + 1;
         unitStr = sprintf('chan%d%s',uMaxChan(iu)+chanOff,num2abc(chanNoUnits(uMaxChan(iu))));
