@@ -15,8 +15,9 @@ classdef (Abstract=true) DataAdapter < handle
     methods (Access=public)
         % Close file handles
         function [] = closeAll(obj)
-            for i = 1:numel(obj.fidArray)
-               fclose(obj.fidArray(i));
+            openFiles = intersect(obj.fidArray, fopen('all'));
+            for i = 1:numel(openFiles)
+               fclose(openFiles(i));
             end
         end
     end
