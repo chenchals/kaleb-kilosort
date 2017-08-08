@@ -9,6 +9,8 @@ percThresh = .05;
 chanOff = 0;
 sampleRate = 24414;
 resultPath = './dataProcessed';
+rawPath = '/mnt/scratch/Kaleb-data/dataRaw';
+pullWaves = 0;
 
 % Decode varargin
 varStrInd = find(cellfun(@ischar,varargin));
@@ -16,15 +18,31 @@ for iv = 1:length(varStrInd)
     switch varargin{varStrInd(iv)}
         case {'-r'}
             resultPath = varargin{varStrInd(iv)+1};
+        case {'-w'}
+            allWaves = varargin{varStrInd(iv)+1};
     end
 end
 
 
+% Check if we need to get the waveforms here
+if ~exist('allWaves','var')
+    if ~isfield(rez,'waves')
+        pullWaves = 1;  
+    else
+        allWaves = rez.waves;
+    end
+end
+
 % Get what we need from rez before clearing
 [~,sessStr] = fileparts(rez.ops.resultPath(1:(end-1)));
-resultPath = [resultPath,filesep,sessStr];
+resultPath = [resultPath,sessStr];
+ops = rez.ops;
+if isfield(ops,'wvWind')
+    sampWin = ops.wvWind;
+end
+
 isPos = rez.ops.spkTh > 0;
-allWaves = rez.waves;
+
 clear rez;
 
 % If 
@@ -47,7 +65,13 @@ for ic = 1:length(uClusts)
     clustNo = uClusts(ic);
     fprintf('Pulling waves for cluster %d (%d of %d)...',clustNo,ic,length(uClusts));
     % Get this cluster waveforms and times
-    clusterWaves = allWaves(clusts==clustNo,:,:);
+    if pullWaves
+        T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
+        clusterWaves = T.getWaveforms(ops.wvWind,tms(clusts==clustNo),(1:ops.Nchan),ops.chOffset);
+    else
+        myClusts = find(clusts==clustNo);
+        clusterWaves = allWaves(ismember(1:size(allWaves,1),myClusts),:,:);
+    end
     clusterTimes = tms(clusts==clustNo);
     if isPos
         [~,maxAbs] = max(clusterWaves(:,sampWin==0,:),[],3);
