@@ -47,3 +47,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 /.project
+testProcess*
+KiloSort/CUDA/*.mex*
+
+
