@@ -3,14 +3,13 @@ function masterTdt_asFun(sessionDir,probeNum)
 % default options are in parenthesis after the comment
 
 useGPU = 1;
-wavesNow = 0;
 percentSamplesToUse = 100;
 addpath(genpath('KiloSort')) % path to kilosort folder
 addpath(genpath('npy-matlab')) % path to npy-matlab scripts
 
-codeDir = '/home/loweka/git/kaleb-kilosort/';
-fpath = '/mnt/scratch/Kaleb-data/dataRaw/';%'/home/loweka/dataRaw/'; % where on disk do you want the simulation? ideally and SSD...
-rpath = '/home/loweka/DATA/dataProcessed/'; % For results
+codeDir = './';%'/home/loweka/code/';
+fpath = '/Volumes/scratch/Kaleb-data/dataRaw/';%'/home/loweka/dataRaw/'; % where on disk do you want the simulation? ideally and SSD...
+rpath = './test2/dataProcessed/'; % For results
 %sessionDir = 'Init_SetUp-160811-145107/';%'Init_SetUp-160715-150111/';
 
 dataPath = [fpath sessionDir '/'];
@@ -55,36 +54,21 @@ rez = merge_posthoc2(rez);
 % Assign channels to each spike
 %rez = timeToChanv2(rez,DATA);
 
-% Clear up some memory
-clear DATA uproj
+
+% Make sures spikes are within the data
+T=DataAdapter.newDataAdapter('tdt',rez.ops.fbinary);
+maxSamples = T.getSampsToRead(ops.Nchan);
+goodSpikes = rez.st3(:,1) > (-1*ops.wvWind(1)) & rez.st3(:,1) < (maxSamples-ops.wvWind(end));
+
+% Grab waveforms
+rez.waves = nan(size(rez.st3,1),length(ops.wvWind),ops.Nchan);
+rez.waves(goodSpikes,:,:) = T.getWaveforms(ops.wvWind,rez.st3(goodSpikes,1),1:ops.Nchan,rez.ops.chOffset);
+
+% save matlab results file
+save(fullfile(resultPath,  'rez.mat'), 'rez', '-v7.3');
 
 % save python results file for Phy
 rezToPhy(rez, resultPath);
-
-% Make sures spikes are within the data
-save(fullfile(resultPath,  'rez.mat'), '-struct', 'rez', 'ops','st3','xc','yc','-v7.3');
-% % % Set aside the times and ops for memory sake...
-% % tms = rez.st3(:,1);
-% % ops = rez.ops;
-% % % Clear rez for memory...
-% % clear rez;
-% % % Open dataAdapter
-% % T=DataAdapter.newDataAdapter('tdt',ops.fbinary);
-% % % Get the max samples for error detection
-% % maxSamples = T.getSampsToRead(ops.Nchan);
-% % % goodSpikes = logical(tms(:,1) > (-1*ops.wvWind(1)) & tms < (maxSamples-ops.wvWind(end)));
-% % 
-% % % Grab waveforms
-% % % waves(goodSpikes,:,:) = T.getWaveforms(ops.wvWind,tms(goodSpikes,1),1:ops.Nchan,ops.chOffset);
-% % % fprintf('\nSaving %d spikes to file...\n',sum(goodSpikes));
-% % % save(fullfile(resultPath, 'rez.mat'),'waves','-append');
-
-% save matlab results file
-
-close all;
-
-
-% klRezToSpks(rez,'-r',resultPath);
 
 % remove temporary file
 delete(ops.fproc);

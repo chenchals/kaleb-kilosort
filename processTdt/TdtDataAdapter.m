@@ -14,14 +14,12 @@ classdef TdtDataAdapter < DataAdapter
             % assume dForm = single = 4 bytes
             nBytesPerSample = 4;
             checkChannelCount(obj, nChannels);
-%             totalBytes = 0;
-            minBytes = inf;
+            totalBytes = 0;
             for ch = 1:nChannels
                 fStruct = obj.dirStruct(ch);
-                minBytes = min([minBytes,(fStruct.bytes-40)]);
-%                 totalBytes = totalBytes + fStruct.bytes - 40;
+                totalBytes = totalBytes + fStruct.bytes - 40;
             end
-            sampsToRead = minBytes/nBytesPerSample;%floor(totalBytes/nChannels/nBytesPerSample);
+            sampsToRead = floor(totalBytes/nChannels/nBytesPerSample);
         end
         
         % Batch read datapoints
@@ -39,7 +37,6 @@ classdef TdtDataAdapter < DataAdapter
                 %fprintf('after read %d\n',ftell(fid));
                 if isempty(temp)
                     buffer = [];
-                    break
                 else
                    buffer(ch-chOffset,1:length(temp)) = temp;
                 end
@@ -65,17 +62,15 @@ classdef TdtDataAdapter < DataAdapter
            minLoc = (min(wavIndices(:))-1)*4;
            nSampsToRead = max(wavIndices(:)) - min(wavIndices(:)) + 1;
            wavIndicesRel = wavIndices - min(wavIndices(:)) +1;
-           clear wavIndices;
            myChannels = (1:nChannels)+chOffset;
-           waveforms = zeros(nSamples,sampWinLength,nChannels,'single');
-           for ch = fliplr(myChannels)
+           for ch = myChannels
                fprintf('Doing channel %d\n',ch);
                fid = obj.fidArray(ch);
                fseek(fid,minLoc+header,'bof');
                temp = fread(fid, nSampsToRead, ['*' dataType]);
-               waveforms(1:nSamples,1:sampWinLength,ch-chOffset) = reshape(temp(wavIndicesRel),nSamples,sampWinLength);%wtemp{ch-chOffset} = temp(wavIndicesRel);
+               wtemp{ch-chOffset} = temp(wavIndicesRel);
            end
-%            waveforms=reshape(cell2mat(wtemp'),nSamples,sampWinLength,nChannels);
+           waveforms=reshape(cell2mat(wtemp'),nSamples,sampWinLength,nChannels);
            % verify diff should be zero for channel 1
            %DD=WF(:,:,1)-cell2mat(WW39(1));
         end

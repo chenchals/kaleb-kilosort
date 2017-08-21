@@ -94,8 +94,7 @@ function [rez, DATA, uproj] = preprocessData(ops)
         myLoopCount = myLoopCount +1;
         fprintf('Reading spikes into buff while loop count = %d of Nbatch = %d  offset = %d\n',myLoopCount, Nbatch, offset);
         buff = dataAdapter.batchRead(offset, ops.NchanTOT, NTbuff, dataTypeString, chOffset);
-        
-        if isempty(buff) || offset >= ops.maxSampsToRead*dataTypeBytes*ops.NchanTOT
+        if isempty(buff)
             break;
         end
         nsampcurr = size(buff,2);

@@ -9,43 +9,22 @@ percThresh = .05;
 chanOff = 0;
 sampleRate = 24414;
 resultPath = './dataProcessed';
-rawPath = '/mnt/scratch/Kaleb-data/dataRaw';
-pullWaves = 0;
 
 % Decode varargin
 varStrInd = find(cellfun(@ischar,varargin));
-for iv = 1:length(varStrInd)
+for iv = 1:2:length(varStrInd)
     switch varargin{varStrInd(iv)}
         case {'-r'}
             resultPath = varargin{varStrInd(iv)+1};
-        case {'-w'}
-            allWaves = varargin{varStrInd(iv)+1};
-    end
-end
-
-
-% Check if we need to get the waveforms here
-if ~exist('allWaves','var')
-    if ~isfield(rez,'waves')
-        pullWaves = 1;  
-    else
-        allWaves = rez.waves;
     end
 end
 
 % Get what we need from rez before clearing
 [~,sessStr] = fileparts(rez.ops.resultPath(1:(end-1)));
-resultPath = [resultPath,sessStr];
-ops = rez.ops;
-if isfield(ops,'wvWind')
-    sampWin = ops.wvWind;
-end
-
+resultPath = [resultPath,filesep,sessStr];
 isPos = rez.ops.spkTh > 0;
-
+allWaves = rez.waves;
 clear rez;
-
-% If 
 
 % Get clusters and times
 clusts = readNPY([resultPath, '/spike_clusters.npy']);% rez.st3(:,5);
@@ -65,13 +44,7 @@ for ic = 1:length(uClusts)
     clustNo = uClusts(ic);
     fprintf('Pulling waves for cluster %d (%d of %d)...',clustNo,ic,length(uClusts));
     % Get this cluster waveforms and times
-    if pullWaves
-        T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
-        clusterWaves = T.getWaveforms(ops.wvWind,tms(clusts==clustNo),(1:ops.Nchan),ops.chOffset);
-    else
-        myClusts = find(clusts==clustNo);
-        clusterWaves = allWaves(ismember(1:size(allWaves,1),myClusts),:,:);
-    end
+    clusterWaves = allWaves(clusts==clustNo,:,:);
     clusterTimes = tms(clusts==clustNo);
     if isPos
         [~,maxAbs] = max(clusterWaves(:,sampWin==0,:),[],3);
@@ -90,7 +63,7 @@ for ic = 1:length(uClusts)
         spkTimes = tmVect(clusterTimes(maxAbs==uMaxChan(iu)));
         % Unit id
         chanNoUnits(uMaxChan(iu)) = chanNoUnits(uMaxChan(iu)) + 1;
-        unitStr = sprintf('chan%d%s',uMaxChan(iu)+chanOff,num2abc(chanNoUnits(uMaxChan(iu))));
+        unitStr = sprintf('chan%02d%s',uMaxChan(iu)+chanOff,num2abc(chanNoUnits(uMaxChan(iu))));
         
         save([resultPath,filesep,unitStr,'.mat'],'spkTimes','waves','clustNo');
         out.(unitStr).spkTimes = spkTimes;
