@@ -10,7 +10,7 @@ ops.dataTypeString      = 'single'; % datatype of sample point - 'int16' or 'sin
 ops.percentSamplesToUse = 100 ; % of data per channel to use. useful for troubleshooting purposes
 ops.nSpikesPerBatch     = 100000; % emouse has 4000, is this spike rate?
 
-ops.wvWind              = -10:20;
+ops.wvWind              = -25:25;
 
 ops.recordingType       = 'tdt'; %'emouse, tdt
 ops.datatype            = 'sev';  % binary ('dat', 'bin') or 'openEphys'		
@@ -41,14 +41,14 @@ ops.fshigh              = 300;   % frequency for high pass filtering
 % ops.fslow               = 5000;   % frequency for low pass filtering (optional)
 ops.ntbuff              = 64;    % samples of symmetrical buffer for whitening and spike detection		
 ops.scaleproc           = 1; %200;   % int16 scaling of whitened data		
-ops.NT                  = 16*512*1024+ ops.ntbuff;%128*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
+ops.NT                  = 128*1024+ ops.ntbuff;%16*512*1024+ ops.ntbuff;%128*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
 % for GPU should be multiple of 32 + ntbuff		
 		
 % the following options can improve/deteriorate results. 		
 % when multiple values are provided for an option, the first two are beginning and ending anneal values, 		
 % the third is the value used in the final pass. 		
 ops.Th               = [6 12 12];    % threshold for detecting spikes on template-filtered data ([6 12 12])		
-ops.lam              = [5,5,5];%[5 5 5];   % large means amplitudes are forced around the mean ([10 30 30])		
+ops.lam              = [10,30,30];%[5 5 5];   % large means amplitudes are forced around the mean ([10 30 30])		
 ops.nannealpasses    = 4;            % should be less than nfullpasses (4)		
 ops.momentum         = 1./[20 400];  % start with high momentum and anneal (1./[20 1000])		
 ops.shuffle_clusters = 1;            % allow merges and splits during optimization (1)		
@@ -57,9 +57,9 @@ ops.splitT           = .05;           % lower threshold for splitting (.1)
 		
 % options for initializing spikes from data		
 ops.initialize      = 'fromData';    %'fromData' or 'no'		
-ops.spkTh           = -2; %-6;      % spike threshold in standard deviations (4)		
-ops.loc_range       = [3  1];  % ranges to detect peaks; plus/minus in time and channel ([3 1])		
-ops.long_range      = [30  1]; % ranges to detect isolated peaks ([30 6])		
+ops.spkTh           = -4; %-6;      % spike threshold in standard deviations (4)		
+ops.loc_range       = [10  2];  % ranges to detect peaks; plus/minus in time and channel ([3 1])		
+ops.long_range      = [30  2]; % ranges to detect isolated peaks ([30 6])		
 ops.maskMaxChannels = 1;       % how many channels to mask up/down ([5])		
 ops.crit            = .65;     % upper criterion for discarding spike repeates (0.65)		
 ops.nFiltMax        = 10000000;   % maximum "unique" spikes to consider (10000)		

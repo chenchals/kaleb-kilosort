@@ -62,8 +62,8 @@ classdef TdtDataAdapter < DataAdapter
            minLoc = (min(wavIndices(:))-1)*4;
            nSampsToRead = max(wavIndices(:)) - min(wavIndices(:)) + 1;
            wavIndicesRel = wavIndices - min(wavIndices(:)) +1;
-           myChannels = (1:nChannels)+chOffset;
-           for ch = myChannels
+           for ii = 1:nChannels
+               ch = channelNos(ii);
                fprintf('Doing channel %d\n',ch);
                fid = obj.fidArray(ch);
                fseek(fid,minLoc+header,'bof');

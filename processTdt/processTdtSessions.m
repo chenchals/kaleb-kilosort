@@ -1,12 +1,13 @@
 
 baseDataDir = '/Volumes/scratch/Kaleb-data/dataRaw';
-baseResultDir = './testProcess';
 sessions = dir(baseDataDir);
 sessions = sessions(arrayfun(@(x) isempty(regexp(x.name,'^\.','match')),sessions));
 chansPerProbe = 32;
 clear sessions
-sessions.name = 'Init_SetUp-161005-134520';
+sessions.name = 'Init_SetUp-160713-144841';%'Init_SetUp-161005-134520';(64 chans)
 % masterTdt(baseDataDir, baseResultDir, sessionDir, probeNum)
+for repeat = 1:3
+baseResultDir = fullfile('./testProcess/local',['repeat_',num2str(repeat)]);
 for sessInd = 1: numel(sessions)
     session = sessions(sessInd).name;
     % Check if there are 64 channels?
@@ -18,5 +19,7 @@ for sessInd = 1: numel(sessions)
         toc;
         fprintf('\n');
     end
+    out = processKiloSortResults(fullfile(baseResultDir,session));
     fprintf('**********************\n');
+end
 end

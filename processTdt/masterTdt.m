@@ -34,10 +34,10 @@ ops.session             = sessionDir;
 ops.probeDir            = probeDir;
 % Reassign vars - make this explicit here
 ops.GPU                 = 1; %useGPU; % whether to run this code on an Nvidia GPU (much faster, mexGPUall first)		
-ops.percentSamplesToUse = 1;
+ops.percentSamplesToUse = 5;
 ops.nSpikesPerBatch     = 4000;
 ops.showfigures         = 0;		
-ops.wvWind              = -10:20;
+ops.wvWind              = -25:25;
 ops.fbinary             = dataPath;
 % residual from RAM of preprocessed data
 ops.fproc               = fullfile(probeDir, 'temp_wh.dat');	

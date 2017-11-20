@@ -3,8 +3,10 @@
 %%
 %Waves(timeSamples,samplePoints,channels)
 %for ii=1:10:191, tempWaves=wavesAllBatches1{ii}; plotProgress,pause,end
-fprintf('Doing plot...%d\n',ii)
-waves=tempWaves;
+%fprintf('Doing plot...%d\n',ii)
+nWavesLimit = 10000;
+sampleWin = -25:25;
+waves=rez_kl.waves(1:nWavesLimit,:,:);%tempWaves; 
 nSamples = size(waves,1);
 xLim=minmax(sampleWin);
 xVals = sampleWin;

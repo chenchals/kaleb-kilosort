@@ -3,7 +3,7 @@
 function out = klRezToSpks(rez,varargin)
 
 % Set defaults
-sampWin = -10:20;
+sampWin = -25:25;
 nChannels = 1:rez.ops.NchanTOT;
 percThresh = .05;
 chanOff = 0;
@@ -22,6 +22,9 @@ end
 % Get what we need from rez before clearing
 [~,sessStr] = fileparts(rez.ops.resultPath(1:(end-1)));
 resultPath = [resultPath,filesep,sessStr];
+
+resultPath = 'testProcess/Init_SetUp-160713-144841_probe1/klrez2spks';
+
 isPos = rez.ops.spkTh > 0;
 allWaves = rez.waves;
 clear rez;
