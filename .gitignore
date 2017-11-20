@@ -51,3 +51,5 @@ testProcess*
 KiloSort/CUDA/*.mex*
 
 
+temp*
+*.png
