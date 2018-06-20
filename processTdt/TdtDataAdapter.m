@@ -53,11 +53,14 @@ classdef TdtDataAdapter < DataAdapter
         end
         
         % Read sample data for range of [sampleWin] centered on samples
-        function [ waveforms ] = getWaveforms(obj, sampleWin, samples, channelNos, chOffset)
+        function [ waveforms ] = getWaveforms(obj, sampleWin, samples, channelNos, chOffset, maxSamples)
            wtemp = cell(length(channelNos),1);
            dataType = 'single';
            header = 40;
            nSamples = size(samples,1);
+           % Cut out bad samples. Read first channel to get number of
+           goodSpikes = logical(samples(:,1) > (-1*sampleWin(1)) & samples < (maxSamples-sampleWin(end)));
+           samples = samples(goodSpikes,:);
            sampWinLength = length(sampleWin);
            nChannels = length(channelNos);
            wavIndices = arrayfun(@(x) sampleWin+x,samples(:,1),'UniformOutput', false);
@@ -73,7 +76,7 @@ classdef TdtDataAdapter < DataAdapter
                fid = obj.fidArray(ch);
                fseek(fid,minLoc+header,'bof');
                temp = fread(fid, nSampsToRead, ['*' dataType]);
-               waveforms(1:nSamples,1:sampWinLength,ch-chOffset) = reshape(temp(wavIndicesRel),nSamples,sampWinLength);%wtemp{ch-chOffset} = temp(wavIndicesRel);
+               waveforms(goodSpikes,1:sampWinLength,ch-chOffset) = reshape(temp(wavIndicesRel),sum(goodSpikes),sampWinLength);%wtemp{ch-chOffset} = temp(wavIndicesRel);
            end
 %            waveforms=reshape(cell2mat(wtemp'),nSamples,sampWinLength,nChannels);
            % verify diff should be zero for channel 1
@@ -85,9 +88,18 @@ classdef TdtDataAdapter < DataAdapter
         
         function [] = updateFileHandles(obj)
             if exist(obj.dataSource,'dir')==7
+                raw = 0;
                 obj.dirStruct = dir([obj.dataSource '/*_Wav1_Ch*.sev']);
+                if length(obj.dirStruct) == 0
+                    obj.dirStruct = dir([obj.dataSource '/*_RSn1_ch*.sev']);
+                    raw = 1;
+                end
                 for ch = 1:numel(obj.dirStruct)
-                    chStr = ['_Ch' num2str(ch) '.sev'];
+                    if raw
+                        chStr = ['_ch' num2str(ch) '.sev'];
+                    else
+                        chStr = ['_Ch' num2str(ch) '.sev'];
+                    end
                     index = find(contains({obj.dirStruct.name},chStr));
                     obj.dirStruct(index).index = ch;
                     fStruct = obj.dirStruct(index);

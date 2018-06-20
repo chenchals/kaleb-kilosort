@@ -21,9 +21,7 @@ end
 % Get session names
 sessionDir = [subj,'-',date];
 
-% Get individual session files
-sessFiles = dir([fpath,filesep,subj,'-',date,'*']);
-
+% Get individu
 
 % default options are in parenthesis after the comment
 
@@ -33,7 +31,7 @@ percentSamplesToUse = 100;
 addpath(genpath('KiloSort')) % path to kilosort folder
 addpath(genpath('npy-matlab')) % path to npy-matlab scripts
 
-dataPath = [fpath sessionDir];
+dataPath = [fpath sessionDir '/'];
 resultPath = [rpath sessionDir '_probe' num2str(probeNum) '/'];
 
 addpath(genpath([codeDir 'KiloSort'])) % path to kilosort folder

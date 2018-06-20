@@ -6,18 +6,21 @@ function out = klRezToSpks(rez,varargin)
 sampWin = -10:20;
 nChannels = 1:rez.ops.NchanTOT;
 percThresh = .05;
-chanOff = 0;
+chanOff = rez.ops.chOffset;
 sampleRate = 24414;
-resultPath = './dataProcessed';
-rawPath = '/mnt/scratch/Kaleb-data/dataRaw';
+resultPath = '/home/loweka/DATA/dataProcessed/';
+rawPath = '/mnt/teba/data/Kaleb/antiSessions/';
+% rawPath = 
 pullWaves = 0;
 
 % Decode varargin
 varStrInd = find(cellfun(@ischar,varargin));
 for iv = 1:length(varStrInd)
     switch varargin{varStrInd(iv)}
-        case {'-r'}
+        case {'-p'}
             resultPath = varargin{varStrInd(iv)+1};
+        case {'-r'}
+            rawPath = varargin{varStrInd(iv)+1};
         case {'-w'}
             allWaves = varargin{varStrInd(iv)+1};
     end
@@ -45,11 +48,17 @@ isPos = rez.ops.spkTh > 0;
 
 clear rez;
 
-% If 
-
 % Get clusters and times
 clusts = readNPY([resultPath, '/spike_clusters.npy']);% rez.st3(:,5);
 tms = double(readNPY([resultPath,'/spike_times.npy']));
+
+% Load in all waves if necessary (saves read/write time, I hope...)
+if pullWaves
+    fprintf('Loading in all waves...\n');
+    T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
+    maxSamples = T.getSampsToRead(nChannels);
+    allWaves = T.getWaveforms(ops.wvWind,tms,(1:ops.Nchan),ops.chOffset,maxSamples);
+end
 
 % Get unique clusters
 uClusts = unique(clusts);
@@ -63,15 +72,16 @@ chanNoUnits = zeros(1,max(nChannels));
 % Start cluster loop
 for ic = 1:length(uClusts)
     clustNo = uClusts(ic);
-    fprintf('Pulling waves for cluster %d (%d of %d)...',clustNo,ic,length(uClusts));
+    fprintf('Pulling waves for cluster %d (%d spikes, %d of %d)...\n',clustNo,sum(clusts==clustNo),ic,length(uClusts));
     % Get this cluster waveforms and times
-    if pullWaves
-        T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
-        clusterWaves = T.getWaveforms(ops.wvWind,tms(clusts==clustNo),(1:ops.Nchan),ops.chOffset);
-    else
+%     if pullWaves
+%         T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
+%         maxSamples = T.getSampsToRead(nChannels);
+%         clusterWaves = T.getWaveforms(ops.wvWind,tms(clusts==clustNo),(1:ops.Nchan),ops.chOffset,maxSamples);
+%     else
         myClusts = find(clusts==clustNo);
         clusterWaves = allWaves(ismember(1:size(allWaves,1),myClusts),:,:);
-    end
+%     end
     clusterTimes = tms(clusts==clustNo);
     if isPos
         [~,maxAbs] = max(clusterWaves(:,sampWin==0,:),[],3);

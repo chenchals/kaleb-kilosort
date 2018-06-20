@@ -13,8 +13,10 @@ ops.nSpikesPerBatch     = 10000; % emouse has 4000, is this spike rate?
 ops.wvWind              = -25:25;
 
 ops.recordingType       = 'tdt'; %'emouse, tdt
-ops.datatype            = 'sev';  % binary ('dat', 'bin') or 'openEphys'		
-ops.fbinary             = [dataPath]; % will be created for 'openEphys'		
+ops.datatype            = 'sev';  % binary ('dat', 'bin') or 'openEphys'
+% Get binary files
+allFiles = dir([dataPath,'*']);
+ops.fbinary             = {allFiles.name};%[dataPath]; % will be created for 'openEphys'		
 ops.fproc               = fullfile(resultPath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
 ops.root                = fpath; % 'openEphys' only: where raw files are		
 % define the channel map as a filename (string) or simply an array
@@ -38,10 +40,10 @@ ops.Nrank               = 3;    % matrix rank of spike template model (3)
 ops.nfullpasses         = 6;    % number of complete passes through data during optimization (6)		
 ops.maxFR               = 2000000;  % maximum number of spikes to extract per batch (20000)		
 ops.fshigh              = 300;   % frequency for high pass filtering		
-% ops.fslow               = 5000;   % frequency for low pass filtering (optional)
+ops.fslow               = 5000;   % frequency for low pass filtering (optional)
 ops.ntbuff              = 64;    % samples of symmetrical buffer for whitening and spike detection		
 ops.scaleproc           = 1; %200;   % int16 scaling of whitened data		
-ops.NT                  = 8*512*1024+ ops.ntbuff;%128*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
+ops.NT                  = 4*512*1024+ ops.ntbuff;%128*1024+ ops.ntbuff;% this is the batch size (try decreasing if out of memory) 		
 % for GPU should be multiple of 32 + ntbuff		
 		
 % the following options can improve/deteriorate results. 		
