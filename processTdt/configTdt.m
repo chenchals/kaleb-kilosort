@@ -16,7 +16,11 @@ ops.recordingType       = 'tdt'; %'emouse, tdt
 ops.datatype            = 'sev';  % binary ('dat', 'bin') or 'openEphys'
 % Get binary files
 allFiles = dir([dataPath,'*']);
-ops.fbinary             = {allFiles.name};%[dataPath]; % will be created for 'openEphys'		
+allNames = {allFiles.name};
+for i = 1:length(allNames)
+    ops.fbinary{i} = fullfile(allFiles(i).folder,allFiles(i).name);
+end
+% ops.fbinary             = {allFiles.name};%[dataPath]; % will be created for 'openEphys'		
 ops.fproc               = fullfile(resultPath, 'temp_wh.dat'); % residual from RAM of preprocessed data		
 ops.root                = fpath; % 'openEphys' only: where raw files are		
 % define the channel map as a filename (string) or simply an array

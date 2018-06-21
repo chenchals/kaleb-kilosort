@@ -105,7 +105,7 @@ if ~isempty(savePath)
     if ~exist(fullfile(savePath,'params.py'),'file')
         fid = fopen(fullfile(savePath,'params.py'), 'w');
         
-        [~, fname, ext] = fileparts(rez.ops.fbinary);
+        [~, fname, ext] = fileparts(rez.ops.fbinary{1});
         
         fprintf(fid,['dat_path = ''',fname ext '''\n']);
         fprintf(fid,'n_channels_dat = %i\n',rez.ops.NchanTOT);

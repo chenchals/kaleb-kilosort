@@ -55,8 +55,8 @@ tms = double(readNPY([resultPath,'/spike_times.npy']));
 % Load in all waves if necessary (saves read/write time, I hope...)
 if pullWaves
     fprintf('Loading in all waves...\n');
-    tmp = dir([rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))]);
-    T=DataAdapter.newDataAdapter('tdt',x);
+    
+    T=DataAdapter.newDataAdapter('tdt',fullfile(rawPath,sessStr(1:(strfind(sessStr,'_probe')-1))));
     maxSamples = T.getSampsToRead(nChannels);
     allWaves = T.getWaveforms(ops.wvWind,tms,(1:ops.Nchan),ops.chOffset,maxSamples);
 end

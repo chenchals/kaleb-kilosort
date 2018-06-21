@@ -24,32 +24,39 @@ sessionDir = [subj,'-',date];
 % Get individual session files
 sessFiles = dir([fpath,filesep,subj,'-',date,'*']);
 
-
 % default options are in parenthesis after the comment
 
 useGPU = 1;
 wavesNow = 0;
-percentSamplesToUse = 100;
+percentSamplesToUse = 5;%100;
 addpath(genpath('KiloSort')) % path to kilosort folder
 addpath(genpath('npy-matlab')) % path to npy-matlab scripts
 
 dataPath = [fpath sessionDir];
-resultPath = [rpath sessionDir '_probe' num2str(probeNum) '/'];
-
-addpath(genpath([codeDir 'KiloSort'])) % path to kilosort folder
-addpath(genpath([codeDir 'npy-matlab'])) % path to npy-matlab scripts
-
+sessionTmp = sessFiles(1).name;
+resultPath = [rpath sessionTmp '_probe' num2str(probeNum) '/'];
 if exist(resultPath, 'dir') ~= 7
     mkdir(resultPath);
 end
 
+addpath(genpath([codeDir 'KiloSort'])) % path to kilosort folder
+addpath(genpath([codeDir 'npy-matlab'])) % path to npy-matlab scripts
+
 pathToYourConfigFile = [codeDir 'processTdt/'];
 run(fullfile(pathToYourConfigFile, 'configTdt.m'))
+
+sessionDir = sessFiles(1).name;
+resultPath = [rpath sessionDir '_probe' num2str(probeNum) '/'];
+if exist(resultPath, 'dir') ~= 7
+    mkdir(resultPath);
+end
+
 
 ops.chOffset            = 32*(probeNum-1);
 
 tic; % start timer
 %
+
 if ops.GPU     
     gpuDevice(1); % initialize GPU (will erase any existing GPU arrays)
 end

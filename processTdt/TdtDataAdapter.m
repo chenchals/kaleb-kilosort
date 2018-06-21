@@ -16,10 +16,12 @@ classdef TdtDataAdapter < DataAdapter
             checkChannelCount(obj, nChannels);
 %             totalBytes = 0;
             minBytes = inf;
-            for ch = 1:nChannels
-                fStruct = obj.dirStruct(ch);
-                minBytes = min([minBytes,(fStruct.bytes-40)]);
-%                 totalBytes = totalBytes + fStruct.bytes - 40;
+            for i = 1:length(obj.dirStruct)
+                for ch = 1:nChannels
+                    fStruct = obj.dirStruct(i).subName(ch);
+                    minBytes = min([minBytes,(fStruct.bytes-40)]);
+    %                 totalBytes = totalBytes + fStruct.bytes - 40;
+                end
             end
             sampsToRead = minBytes/nBytesPerSample;%floor(totalBytes/nChannels/nBytesPerSample);
         end
@@ -87,36 +89,40 @@ classdef TdtDataAdapter < DataAdapter
     methods (Access=private)
         
         function [] = updateFileHandles(obj)
-            if exist(obj.dataSource,'dir')==7
-                raw = 0;
-                obj.dirStruct = dir([obj.dataSource '/*_Wav1_Ch*.sev']);
-                if length(obj.dirStruct) == 0
-                    obj.dirStruct = dir([obj.dataSource '/*_RSn1_ch*.sev']);
-                    raw = 1;
-                end
-                for ch = 1:numel(obj.dirStruct)
-                    if raw
-                        chStr = ['_ch' num2str(ch) '.sev'];
-                    else
-                        chStr = ['_Ch' num2str(ch) '.sev'];
+            for i = 1:length(obj.dataSource)
+                if exist(obj.dataSource{i},'dir')==7
+                    raw = 0;
+                    obj.dirStruct(i).subName = dir([obj.dataSource{i} '/*_Wav1_Ch*.sev']);
+                    if length(obj.dirStruct(i).subName) == 0
+                        obj.dirStruct(i).subName = dir([obj.dataSource{i} '/*_RSn1_ch*.sev']);
+                        raw = 1;
                     end
-                    index = find(contains({obj.dirStruct.name},chStr));
-                    obj.dirStruct(index).index = ch;
-                    fStruct = obj.dirStruct(index);
-                    obj.fidArray(ch) = fopen(fullfile(fStruct.folder,fStruct.name),'rb');
+                    for ch = 1:numel(obj.dirStruct(i).subName)
+                        if raw
+                            chStr = ['_ch' num2str(ch) '.sev'];
+                        else
+                            chStr = ['_Ch' num2str(ch) '.sev'];
+                        end
+                        index = find(contains({obj.dirStruct(i).subName.name},chStr));
+                        obj.dirStruct(i).subName(index).index = ch;
+                        fStruct = obj.dirStruct(i).subName(index);
+                        obj.fidArray(ch) = fopen(fullfile(fStruct.folder,fStruct.name),'rb');
+                    end
+                    %sort dirStruct to correspond to ch number
+                    [~,sortOrder] = sortrows({obj.dirStruct(i).subName.index}');
+                    obj.dirStruct(i).subName = obj.dirStruct(i).subName(sortOrder);
+                else
+                    error('DirNotFound: TDT data dir %s does not exist',obj.dataSource);
                 end
-                %sort dirStruct to correspond to ch number
-                [~,sortOrder] = sortrows({obj.dirStruct.index}');
-                obj.dirStruct = obj.dirStruct(sortOrder);
-            else
-                error('DirNotFound: TDT data dir %s does not exist',obj.dataSource);
             end
         end
         
         function [] = checkChannelCount(obj, nChannels)
-            if ~(nChannels <= numel(obj.dirStruct))
-                error('NChannels [%d] specified are more than number of .sev files [%d].', ...
-                    nChannels, numel(obj.dirStruct));
+            for i = 1:length(obj.dirStruct)
+                if ~(nChannels <= numel(obj.dirStruct(i).subName))
+                    error('NChannels [%d] specified are more than number of .sev files [%d].', ...
+                        nChannels, numel(obj.dirStruct(i).subName));
+                end
             end
         end
         
