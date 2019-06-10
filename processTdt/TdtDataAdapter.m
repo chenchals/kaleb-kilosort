@@ -49,6 +49,17 @@ classdef TdtDataAdapter < DataAdapter
             end
         end
         
+        function [ chData ] = getChannelData(obj, nChannels, channelNo, dataTypeString)
+            readOffset = 40; % Header
+            chStr = num2str(channelNo,'_Ch%d.sev');
+            fprintf('reading channel %d of %d\n',channelNo, nChannels)
+            fid = obj.fidArray(contains({obj.dirStruct.name}',chStr));
+            fseek(fid,readOffset,'bof');
+            chData = fread(fid, obj.getSampsToRead(nChannels),['*' dataTypeString]);
+            
+        end
+        
+        
         % Read sample data for range of [sampleWin] centered on samples
         function [ waveforms ] = getWaveforms(obj, sampleWin, samples, channelNos, chOffset)
            wtemp = cell(length(channelNos),1);

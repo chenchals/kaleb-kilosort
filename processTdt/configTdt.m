@@ -57,7 +57,7 @@ ops.splitT           = .05;           % lower threshold for splitting (.1)
 		
 % options for initializing spikes from data		
 ops.initialize      = 'fromData';    %'fromData' or 'no'		
-ops.spkTh           = -4; %-6;      % spike threshold in standard deviations (4)		
+ops.spkTh           = -6; %-4; %-6;      % spike threshold in standard deviations (4)		
 ops.loc_range       = [10  2];  % ranges to detect peaks; plus/minus in time and channel ([3 1])		
 ops.long_range      = [30  2]; % ranges to detect isolated peaks ([30 6])		
 ops.maskMaxChannels = 1;       % how many channels to mask up/down ([5])		
