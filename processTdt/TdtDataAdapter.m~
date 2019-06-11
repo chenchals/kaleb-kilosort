@@ -29,17 +29,15 @@ classdef TdtDataAdapter < DataAdapter
             headerBytes = 40;
             readOffset = (readOffsetAllChan/nChannels) + headerBytes;
             myChannels = (1:nChannels)+chOffset;
-            parallel.pool.Constant(obj);
-            for ch = 1: max(myChannels)
+            parfor ch = 1: max(myChannels)
                 %fid = obj.fidArray(ch);
                 %fseek(fid,readOffset,'bof');
                 %fprintf('pointer before read %d ...',ftell(fid));
                 %temp{ch,1} = fread(fid, nSamples,['*' dataTypeString]);
                 %fprintf('after read %d\n',ftell(fid));
-                
-                temp{ch} = parRead(obj,ch,readOffset,nSamples,['*' dataTypeString]);
+                temp{ch,1} = obj.parRead(ch,nSa
             end
-            temp = cell2mat(temp)';
+            temp = cell2mat(temp);
             if isempty(temp)
                 buffer = [];
             else
@@ -50,10 +48,20 @@ classdef TdtDataAdapter < DataAdapter
             
             % close all filehandles if buff=[], as we have read past the
             % file for every channel
-            %if isempty(buffer)
-            %     obj.closeAll();
-            %end
+            if isempty(buffer)
+                 obj.closeAll();
+            end
         end     
+        
+        function [data] = parRead(fidIdx, nSamples, precision)
+                fid = obj.fidArray(fidIdx);
+                fseek(fid,readOffset,'bof');
+                %fprintf('pointer before read %d ...',ftell(fid));
+                data = fread(fid, nSamples,precision);
+                %fprintf('after read %d\n',ftell(fid));
+
+        end
+        
         
         % Batch read datapoints
         function [ buffer ] = batchRead00(obj, readOffsetAllChan, nChannels, nSamples, dataTypeString, chOffset)
@@ -88,7 +96,8 @@ classdef TdtDataAdapter < DataAdapter
             fprintf('reading channel %d of %d\n',channelNo, nChannels)
             fid = obj.fidArray(contains({obj.dirStruct.name}',chStr));
             fseek(fid,readOffset,'bof');
-            chData = fread(fid, obj.getSampsToRead(nChannels),['*' dataTypeString]);  
+            chData = fread(fid, obj.getSampsToRead(nChannels),['*' dataTypeString]);
+            
         end
         
         
@@ -120,17 +129,7 @@ classdef TdtDataAdapter < DataAdapter
     end
     
     methods (Access=private)
-
-        function [data] = parRead(obj,ch, readOffset, nSamples, precision)
-                fn = fullfile(obj.dirStruct(ch).folder,obj.dirStruct(ch).name);
-                fid = fopen(fn,'rb');
-                fseek(fid,readOffset,'bof');
-                %fprintf('pointer before read %d ...',ftell(fid));
-                data = fread(fid, nSamples,precision);
-                %fprintf('after read %d\n',ftell(fid));
-                fclose(fid);
-        end
-                        
+        
         function [] = updateFileHandles(obj)
             if exist(obj.dataSource,'dir')==7
                 obj.dirStruct = dir([obj.dataSource '/*_Wav1_Ch*.sev']);

@@ -10,7 +10,7 @@ ops.dataTypeString      = 'single'; % datatype of sample point - 'int16' or 'sin
 ops.percentSamplesToUse = 100 ; % of data per channel to use. useful for troubleshooting purposes
 ops.nSpikesPerBatch     = 100000; % emouse has 4000, is this spike rate?
 
-ops.wvWind              = [1:61]-20; % -25:25
+ops.wvWind              = [1:61]
 
 ops.recordingType       = 'tdt'; %'emouse, tdt
 ops.datatype            = 'sev';  % binary ('dat', 'bin') or 'openEphys'		

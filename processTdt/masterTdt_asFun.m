@@ -8,7 +8,7 @@ addpath(genpath('KiloSort')) % path to kilosort folder
 addpath(genpath('npy-matlab')) % path to npy-matlab scripts
 
 codeDir = './';%'/home/loweka/code/';
-fpath = '/scratch/KS2/dataRaw/TESTDATA/Init_SetUp-160811-145107/';%'/home/loweka/dataRaw/'; % where on disk do you want the simulation? ideally and SSD...
+fpath = '/scratch/KS2/dataRaw/TESTDATA/';%'/home/loweka/dataRaw/'; % where on disk do you want the simulation? ideally and SSD...
 rpath = '/scratch/KS1/dataProcessed/'; % For results
 %sessionDir = 'Init_SetUp-160811-145107/';%'Init_SetUp-160715-150111/';
 

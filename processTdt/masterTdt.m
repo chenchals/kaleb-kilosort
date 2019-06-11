@@ -34,10 +34,10 @@ ops.session             = sessionDir;
 ops.probeDir            = probeDir;
 % Reassign vars - make this explicit here
 ops.GPU                 = 1; %useGPU; % whether to run this code on an Nvidia GPU (much faster, mexGPUall first)		
-ops.percentSamplesToUse = 5;
+ops.percentSamplesToUse = 100;
 ops.nSpikesPerBatch     = 4000;
 ops.showfigures         = 0;		
-ops.wvWind              = -25:25;
+ops.wvWind              = [1:61]-20; %-25:25;
 ops.fbinary             = dataPath;
 % residual from RAM of preprocessed data
 ops.fproc               = fullfile(probeDir, 'temp_wh.dat');	
@@ -55,7 +55,7 @@ ops.scaleproc           = 1;
 % This is the batch size (try decreasing if out of memory) 	
 % For GPU should be multiple of 32 + ntbuff
 % 128*1024+ ops.ntbuff; 16*512*1024
-ops.NT                  = 128*1024 + ops.ntbuff;
+ops.NT                  = 16*512*1024 + ops.ntbuff;
 
 %% Start KiloSort Processing
 if exist(probeDir, 'dir') ~= 7
